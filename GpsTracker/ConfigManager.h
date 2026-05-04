@@ -2,17 +2,22 @@
 
 #include <ArduinoJson.h>
 #include "LittleFS.h"
+#include <WiFiClientSecure.h>
 
 namespace Defaults {
-  static constexpr uint32_t GPS_BAUD          = 38400;
-  static constexpr uint8_t  GPS_RXD           = 16;
-  static constexpr uint8_t  GPS_TXD           = 17;
-  static constexpr uint32_t GPS_TIMEOUT_MS    = 5000;
-  static constexpr uint32_t GPS_MIN_CHARS     = 10;
-  static constexpr uint32_t DISPLAY_INTERVAL  = 2000;
-  static constexpr int      TZ_OFFSET_H       = 5;
-  static constexpr int      TZ_OFFSET_M       = 30;
-  static constexpr uint16_t MQTT_PORT         = 8883;
+  static constexpr uint32_t GPS_BAUD         = 38400;
+  static constexpr uint8_t  GPS_RXD          = 16;
+  static constexpr uint8_t  GPS_TXD          = 17;
+  static constexpr uint32_t GPS_TIMEOUT_MS   = 5000;
+  static constexpr uint32_t GPS_MIN_CHARS    = 10;
+  static constexpr uint32_t DISPLAY_INTERVAL = 2000;
+  static constexpr int      TZ_OFFSET_H      = 5;
+  static constexpr int      TZ_OFFSET_M      = 30;
+  static constexpr uint16_t MQTT_PORT        = 8883;
+
+  static constexpr uint8_t  SEAT_PIN            = 32;
+  static constexpr int      SEAT_THRESHOLD      = 500;
+  static constexpr uint32_t SEAT_POLL_MS        = 500;
 }
 
 struct WifiCfg {
@@ -43,8 +48,10 @@ struct TimezoneCfg {
   int offset_minutes;
 };
 
-struct BleCfg {
-  char name[32];
+struct SeatCfg {
+  uint8_t  pin;
+  int      threshold;
+  uint32_t poll_interval_ms;
 };
 
 struct AppConfig {
@@ -52,7 +59,7 @@ struct AppConfig {
   MqttCfg     mqtt;
   GpsCfg      gps;
   TimezoneCfg tz;
-  BleCfg      ble;
+  SeatCfg     seat;
   bool        valid;
 };
 
@@ -61,7 +68,7 @@ public:
   static bool begin(AppConfig& cfg) {
     cfg.valid = false;
 
-    if (!LittleFS.begin(false, "/littlefs", 10, "spiffs")) {
+    if (!LittleFS.begin(true, "/littlefs", 10, "spiffs")) {
       Serial.println(F("[CFG] LittleFS mount failed!"));
       return false;
     }
@@ -104,31 +111,16 @@ private:
       return false;
     }
 
-    strlcpy(cfg.wifi.ssid,
-            doc["wifi"]["ssid"] | "",
-            sizeof(cfg.wifi.ssid));
-    strlcpy(cfg.wifi.password,
-            doc["wifi"]["password"] | "",
-            sizeof(cfg.wifi.password));
+    strlcpy(cfg.wifi.ssid,      doc["wifi"]["ssid"]     | "", sizeof(cfg.wifi.ssid));
+    strlcpy(cfg.wifi.password,  doc["wifi"]["password"] | "", sizeof(cfg.wifi.password));
 
-
-    strlcpy(cfg.mqtt.broker,
-            doc["mqtt"]["broker"] | "",
-            sizeof(cfg.mqtt.broker));
+    strlcpy(cfg.mqtt.broker,   doc["mqtt"]["broker"]        | "",             sizeof(cfg.mqtt.broker));
     cfg.mqtt.port = doc["mqtt"]["port"] | Defaults::MQTT_PORT;
-    strlcpy(cfg.mqtt.username,
-            doc["mqtt"]["username"] | "",
-            sizeof(cfg.mqtt.username));
-    strlcpy(cfg.mqtt.password,
-            doc["mqtt"]["password"] | "",
-            sizeof(cfg.mqtt.password));
-    strlcpy(cfg.mqtt.topic,
-            doc["mqtt"]["topic"] | "fleet/gps",
-            sizeof(cfg.mqtt.topic));
+    strlcpy(cfg.mqtt.username, doc["mqtt"]["username"]      | "",             sizeof(cfg.mqtt.username));
+    strlcpy(cfg.mqtt.password, doc["mqtt"]["password"]      | "",             sizeof(cfg.mqtt.password));
+    strlcpy(cfg.mqtt.topic,    doc["mqtt"]["topic"]         | "fleet/gps",   sizeof(cfg.mqtt.topic));
     strlcpy(cfg.mqtt.client_prefix,
-            doc["mqtt"]["client_prefix"] | "FleetTracker",
-            sizeof(cfg.mqtt.client_prefix));
-
+            doc["mqtt"]["client_prefix"] | "FleetTracker", sizeof(cfg.mqtt.client_prefix));
 
     cfg.gps.baud                = doc["gps"]["baud"]                | Defaults::GPS_BAUD;
     cfg.gps.rxd                 = doc["gps"]["rxd"]                 | Defaults::GPS_RXD;
@@ -137,14 +129,12 @@ private:
     cfg.gps.min_chars           = doc["gps"]["min_chars"]           | Defaults::GPS_MIN_CHARS;
     cfg.gps.display_interval_ms = doc["gps"]["display_interval_ms"] | Defaults::DISPLAY_INTERVAL;
 
-
     cfg.tz.offset_hours   = doc["timezone"]["offset_hours"]   | Defaults::TZ_OFFSET_H;
     cfg.tz.offset_minutes = doc["timezone"]["offset_minutes"] | Defaults::TZ_OFFSET_M;
 
-
-    strlcpy(cfg.ble.name,
-            doc["bluetooth"]["name"] | "FleetTracker",
-            sizeof(cfg.ble.name));
+    cfg.seat.pin              = doc["seat"]["pin"]              | Defaults::SEAT_PIN;
+    cfg.seat.threshold        = doc["seat"]["threshold"]        | Defaults::SEAT_THRESHOLD;
+    cfg.seat.poll_interval_ms = doc["seat"]["poll_interval_ms"] | Defaults::SEAT_POLL_MS;
 
     return true;
   }

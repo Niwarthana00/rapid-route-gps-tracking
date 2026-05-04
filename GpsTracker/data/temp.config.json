@@ -23,7 +23,9 @@
     "offset_hours": 5,
     "offset_minutes": 30
   },
-  "bluetooth": {
-    "name": "RapidRouteTracker"
+  "seat": {
+    "pin": 32,
+    "threshold": 500,
+    "poll_interval_ms": 500
   }
 }

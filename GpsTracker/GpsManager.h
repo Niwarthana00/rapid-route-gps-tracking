@@ -22,18 +22,16 @@ namespace GpsUtil {
 struct DateTime { int year, month, day, hour, minute, second; };
 
 struct GpsState {
-  TinyGPSPlus      gps;
-  unsigned long    lastDisplayMs  = 0;
-  unsigned long    startMs        = 0;
-  bool             errorShown     = false;
-  bool             errorCleared   = false;
+  TinyGPSPlus   gps;
+  unsigned long lastDisplayMs = 0;
+  unsigned long startMs       = 0;
+  bool          errorShown    = false;
+  bool          errorCleared  = false;
 };
 
 class GpsManager {
 public:
-  static void begin(GpsState& s, HardwareSerial& gpsSerial,
-                    const GpsCfg& cfg)
-  {
+  static void begin(GpsState& s, HardwareSerial& gpsSerial, const GpsCfg& cfg) {
     gpsSerial.begin(cfg.baud, SERIAL_8N1, cfg.rxd, cfg.txd);
     s.startMs       = millis();
     s.lastDisplayMs = millis();
@@ -65,8 +63,7 @@ public:
 
   template<typename Emitter>
   static void tick(GpsState& s, const GpsCfg& cfg,
-                   const TimezoneCfg& tz, Emitter& em)
-  {
+                   const TimezoneCfg& tz, Emitter& em) {
     if (millis() - s.lastDisplayMs < cfg.display_interval_ms) return;
     s.lastDisplayMs += cfg.display_interval_ms;
     printReport(s.gps, tz, em);
@@ -75,8 +72,7 @@ public:
 private:
   static DateTime toLocalTime(int yr, int mo, int dy,
                                int hr, int mn, int sc,
-                               const TimezoneCfg& tz)
-  {
+                               const TimezoneCfg& tz) {
     DateTime dt = { yr, mo, dy, hr, mn, sc };
     dt.minute += tz.offset_minutes;
     if (dt.minute >= 60) { dt.minute -= 60; dt.hour++; }

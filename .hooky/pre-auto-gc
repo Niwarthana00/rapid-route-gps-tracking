@@ -1,0 +1,6 @@
+#!/bin/sh
+command -v hooky >/dev/null 2>&1 || {
+  echo "hooky: 'hooky' not found on PATH (needed to run the pre-auto-gc hook). Install it and try again." >&2
+  exit 1
+}
+exec hooky run pre-auto-gc "$@"

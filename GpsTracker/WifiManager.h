@@ -7,8 +7,8 @@ static constexpr uint32_t WIFI_CONNECT_TIMEOUT = 15000UL;
 static constexpr uint32_t WIFI_CHECK_INTERVAL  =  5000UL;
 
 struct WifiState {
-  unsigned long lastCheckMs    = 0;
-  bool          everConnected  = false;
+  unsigned long lastCheckMs   = 0;
+  bool          everConnected = false;
 };
 
 class WifiManager {
@@ -21,14 +21,13 @@ public:
     unsigned long t = millis();
     while (WiFi.status() != WL_CONNECTED) {
       if (millis() - t > WIFI_CONNECT_TIMEOUT) {
-        Serial.println(F("\n[WiFi] TIMEOUT – continuing without WiFi"));
+        Serial.println(F("\n[WiFi] TIMEOUT - continuing without WiFi"));
         return false;
       }
       delay(250);
       Serial.print('.');
     }
-    Serial.printf("\n[WiFi] Connected! IP: %s\n",
-                  WiFi.localIP().toString().c_str());
+    Serial.printf("\n[WiFi] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
     s.everConnected = true;
     return true;
   }
@@ -38,7 +37,7 @@ public:
     s.lastCheckMs = millis();
 
     if (WiFi.status() != WL_CONNECTED) {
-      Serial.println(F("[WiFi] Disconnected – reconnecting..."));
+      Serial.println(F("[WiFi] Disconnected - reconnecting..."));
       WiFi.disconnect();
       WiFi.begin(cfg.ssid, cfg.password);
     }

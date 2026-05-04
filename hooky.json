@@ -1,0 +1,71 @@
+{
+  "hooks": {
+    "pre-commit": [
+      "echo Running pre-commit checks..."
+    ],
+    "commit-msg": [
+      "echo Validating commit message..."
+    ]
+  },
+  "protected_paths": [
+    "**/root.crt",
+    "**/*.key",
+    "**/.env"
+  ],
+  "required_paths": [
+    "GpsTracker/data/temp.config.json",
+    "GpsTracker/data/temp.root.crt"
+  ],
+  "commit_message": {
+    "rules": [
+      {
+        "branch": "master",
+        "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$",
+        "require_body": false
+      },
+      {
+        "branch": "dev",
+        "pattern": "(^#[0-9]+ Feat: .+$)|(^Merge branch '.+' into dev$)|(^Squash commit of branch .+$)"
+      },
+      {
+        "branch": "do[0-9]+",
+        "pattern": "^.*$"
+      },
+      {
+        "branch": "fix[0-9]+",
+        "pattern": "^.*$"
+      },
+      {
+        "branch": "*",
+        "pattern": "^(feat|fix|chore|docs|refactor|test)(\\([a-z0-9-]+\\))?: .{5,}$"
+      }
+    ]
+  },
+  "protected_branches": [
+    "dev"
+  ],
+  "merge_rules": {
+    "rules": [
+      {
+        "branch": "master",
+        "require_squash": false,
+        "tag_format": "v*.*.*",
+        "allowed_source_branches": [
+          "dev",
+          "fix[0-9]+"
+        ]
+      },
+      {
+        "branch": "dev",
+        "require_squash": true,
+        "allowed_source_branches": [
+          "do[0-9]+",
+          "fix[0-9]+"
+        ]
+      }
+    ]
+  },
+  "tag_push_branches": [
+    "master"
+  ]
+}
