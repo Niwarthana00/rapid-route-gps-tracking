@@ -1,0 +1,29 @@
+{
+  "wifi": {
+    "ssid": "YourWiFiSSID",
+    "password": "YourWiFiPassword"
+  },
+  "mqtt": {
+    "broker": "h916186c.ala.eu-central-1.emqxsl.com",
+    "port": 8883,
+    "username": "your_mqtt_username",
+    "password": "your_mqtt_password",
+    "topic": "fleet/gps",
+    "client_prefix": "RapidRouteTracker"
+  },
+  "gps": {
+    "baud": 38400,
+    "rxd": 16,
+    "txd": 17,
+    "timeout_ms": 5000,
+    "min_chars": 10,
+    "display_interval_ms": 2000
+  },
+  "timezone": {
+    "offset_hours": 5,
+    "offset_minutes": 30
+  },
+  "bluetooth": {
+    "name": "RapidRouteTracker"
+  }
+}
